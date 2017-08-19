@@ -5,14 +5,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Random;
+import java.util.Stack;
 
-public class Grafo {
-	private List<Vertice> vertices;
-	private boolean dirigido;
+import exceptions.SemCaminhoException;
 
-	public Grafo(boolean dirigido) {
+public abstract class Grafo {
+	protected List<Vertice> vertices;
+
+	public Grafo() {
 		this.vertices = new ArrayList<Vertice>();
-		this.dirigido = dirigido;
 	}
 
 	public List<Vertice> getVertices() {
@@ -21,14 +22,6 @@ public class Grafo {
 
 	public void setVertices(List<Vertice> vertices) {
 		this.vertices = vertices;
-	}
-
-	public boolean isDirigido() {
-		return dirigido;
-	}
-
-	public void setDirigido(boolean ehDirigido) {
-		this.dirigido = ehDirigido;
 	}
 
 	public void adicionarVertice(Vertice vertice) {
@@ -47,20 +40,9 @@ public class Grafo {
 		}
 	}
 
-	public void adicionarAresta(Vertice origem, Vertice destino) {
-		origem.addAdjacente(destino);
-		// Se nao for dirigido, tanto a ida como a volta tem q valer
-		if (!dirigido) {
-			destino.addAdjacente(origem);
-		}
-	}
+	abstract public void adicionarAresta(Vertice origem, Vertice destino);
 
-	public void removerAresta(Vertice origem, Vertice destino) {
-		origem.removerAdjacente(destino);
-		if (!dirigido) {
-			destino.removerAdjacente(origem);
-		}
-	}
+	abstract public void removerAresta(Vertice origem, Vertice destino);
 	
 	public void inicializarVertices() {
 		for (Vertice vertice: vertices) {
@@ -102,17 +84,23 @@ public class Grafo {
 	}
 	
 	//DFS
-	public void buscarEmProfundidade() {
+	public void buscarEmProfundidade(Vertice raiz) {
 		inicializarVertices();
 		//Precisamos começar de um vertice, que tal escolher um aleatorio?
 		Random random = new Random();
-		int indiceRaiz = random.nextInt(vertices.size());
-		Vertice raiz = vertices.get(indiceRaiz);
+		Vertice raizSelecionada;
+		if (raiz == null) {
+			int indiceRaiz = random.nextInt(vertices.size());
+			raizSelecionada = vertices.get(indiceRaiz);
+		}
+		else {
+			raizSelecionada = raiz;
+		}
 		//Raiz ja foi visitada, logo fica com a cor cinza
-		raiz.setCor(Vertice.CINZA);
-		raiz.setDistanciaRaiz(0);
-		System.out.println("Raiz dessa busca é: "+ raiz.getDescricao());
-		buscarEm(raiz);
+		raizSelecionada.setCor(Vertice.CINZA);
+		raizSelecionada.setDistanciaRaiz(0);
+		System.out.println("Raiz dessa busca é: "+ raizSelecionada.getDescricao());
+		buscarEm(raizSelecionada);
 	}
 	
 	//DFS_visit
@@ -130,7 +118,7 @@ public class Grafo {
 	
 	//Para grafos dirigidos, eh verdadeiro se for FORTEMENTE conexo
 	public Boolean ehConexo() {
-		buscarEmProfundidade();
+		buscarEmProfundidade(null);
 		for (Vertice vertice: vertices) {
 			if (vertice.getCor() == Vertice.BRANCO) {
 				return false;
@@ -139,8 +127,97 @@ public class Grafo {
 		return true;
 	}
 	
+	public Boolean ehAtingivel(Vertice u, Vertice v) {
+		//Começar o DFS pelo u
+		inicializarVertices();
+		return ehAtingivelVisit(u,v);
+	}
+	
+	public Boolean ehAtingivelVisit(Vertice u, Vertice v) {
+		System.out.println("Vertice visitado (DFS): "+ u.getDescricao());
+		if (u == v) {
+			return true;
+		}
+		u.setCor(Vertice.CINZA);
+		for (Vertice adj: u.getAdjacentes()) {
+			if (adj.getCor() == Vertice.BRANCO) {
+				adj.setPai(u);
+				if(ehAtingivelVisit(adj,v)) {
+					return true;
+				}
+			}
+		}
+		v.setCor(Vertice.PRETO);
+		return false;
+	}
+	
+	public String caminho(Vertice u, Vertice v) throws SemCaminhoException {
+		inicializarVertices();
+		Stack<Vertice> verticesCaminho = new Stack<Vertice>();
+		String caminho = "";
+		if(caminhoVisit(u,v,verticesCaminho)) {
+			verticesCaminho.push(u);
+			while(!verticesCaminho.isEmpty()) {
+				caminho += verticesCaminho.pop().getDescricao() + " ";
+			}
+		}
+		if (caminho.isEmpty()) {
+			throw new SemCaminhoException("Não possui caminho de "+ u.getDescricao() + " ate " + v.getDescricao());
+		}
+		return caminho;
+	}
+	
+	public Boolean caminhoVisit(Vertice u, Vertice v, Stack<Vertice> verticesCaminho) {
+		System.out.println("Vertice visitado (DFS): "+ u.getDescricao());
+		if (u == v) {
+			return true;
+		}
+		u.setCor(Vertice.CINZA);
+		for (Vertice adj: u.getAdjacentes()) {
+			if (adj.getCor() == Vertice.BRANCO) {
+				adj.setPai(u);
+				if(caminhoVisit(adj,v,verticesCaminho)) {
+					verticesCaminho.push(adj);
+					return true;
+				}
+			}
+		}
+		v.setCor(Vertice.PRETO);
+		return false;
+	}
+	
+	public Boolean ehCiclico() {
+		inicializarVertices();
+		for (Vertice v: this.vertices)
+			if(v.getCor() == Vertice.BRANCO) {
+				if (ehCiclicoVisit(v)) {
+					return true;
+				}
+			}
+		return false;
+	}
+	
+	public Boolean ehCiclicoVisit(Vertice vertice) {
+		System.out.println("Vertice visitado (DFS): "+ vertice.getDescricao());
+		vertice.setCor(Vertice.CINZA);
+
+		for (Vertice adj: vertice.getAdjacentes()) {
+			if (adj.getCor() == Vertice.CINZA && adj != vertice.getPai()) {
+				return true;
+			}
+			if (adj.getCor() == Vertice.BRANCO) {
+				adj.setPai(vertice);
+				if (ehCiclicoVisit(adj)) {
+					return true;
+				}
+			}
+		}
+		vertice.setCor(Vertice.PRETO);
+		return false;
+	}
+	
 	public String  toString() {
-		String retorno = dirigido ? "Grafo dirigido\n\n" : "Grafo não dirigido\n\n";
+		String retorno = "";
 		for (Vertice v: this.vertices) {
 			retorno += "Vertice " + v.getDescricao() + " com adjacentes: ";
 			for (Vertice adj: v.getAdjacentes()) {

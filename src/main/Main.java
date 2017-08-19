@@ -1,36 +1,39 @@
 package main;
 
 import estrutura.Grafo;
+import estrutura.GrafoDirigido;
+import estrutura.GrafoNaoDirigido;
 import estrutura.Vertice;
+import exceptions.SemCaminhoException;
 
 public class Main {
 
 	public static void main(String[] args) {
-		Vertice no1 = new Vertice("no1");
-		Vertice no2 = new Vertice("no2");
-		Vertice no3 = new Vertice("no3");
-		Vertice no4 = new Vertice("no4");
-		Vertice no5 = new Vertice("no5");
+		Vertice a = new Vertice("a");
+		Vertice b = new Vertice("b");
+		Vertice c = new Vertice("c");
+		Vertice d = new Vertice("d");
+		Vertice e = new Vertice("e");
 		
-		Grafo grafo = new Grafo(false);
+		Grafo grafo = new GrafoDirigido();
 		
-		grafo.adicionarVertice(no1);
-		grafo.adicionarVertice(no2);
-		grafo.adicionarVertice(no3);
-		grafo.adicionarVertice(no4);
-		grafo.adicionarVertice(no5);
+		grafo.adicionarVertice(a);
+		grafo.adicionarVertice(b);
+		grafo.adicionarVertice(c);
+		grafo.adicionarVertice(d);
+		grafo.adicionarVertice(e);
 		
-		grafo.adicionarAresta(no1, no3);
-		grafo.adicionarAresta(no2, no3);
-		grafo.adicionarAresta(no2, no4);
-		grafo.adicionarAresta(no3, no4);
-		grafo.adicionarAresta(no3, no5);
-		grafo.adicionarAresta(no4, no5);
+		grafo.adicionarAresta(a, b);
+		grafo.adicionarAresta(a, c);
+		grafo.adicionarAresta(b, c);
+		grafo.adicionarAresta(d, e);
+		grafo.adicionarAresta(b, e);
+		grafo.adicionarAresta(b, d);
 		
-		System.out.println(grafo);
-		System.out.println();
-//		grafo.buscarEmLargura();
-		System.out.println(grafo.ehConexo() ? "Conexo": "Não conexo");
+		try {
+			System.out.println(grafo.caminho(a, e));
+		} catch (SemCaminhoException ex) {
+			System.out.println("Sem caminho entre a e e");
+		}
 	}
-
 }
