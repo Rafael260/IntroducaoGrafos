@@ -9,31 +9,15 @@ import exceptions.SemCaminhoException;
 public class Main {
 
 	public static void main(String[] args) {
-		Vertice a = new Vertice("a");
-		Vertice b = new Vertice("b");
-		Vertice c = new Vertice("c");
-		Vertice d = new Vertice("d");
-		Vertice e = new Vertice("e");
+		Grafo grafo = new GrafoDirigido(3);
 		
-		Grafo grafo = new GrafoDirigido();
+		grafo.adicionarAresta(0, 1,null);
+		grafo.adicionarAresta(1, 2,null);
+		grafo.adicionarAresta(0, 2,null);
 		
-		grafo.adicionarVertice(a);
-		grafo.adicionarVertice(b);
-		grafo.adicionarVertice(c);
-		grafo.adicionarVertice(d);
-		grafo.adicionarVertice(e);
+		Grafo inverso = grafo.getGrafoInverso();
 		
-		grafo.adicionarAresta(a, b);
-		grafo.adicionarAresta(a, c);
-		grafo.adicionarAresta(b, c);
-		grafo.adicionarAresta(d, e);
-		grafo.adicionarAresta(b, e);
-		grafo.adicionarAresta(b, d);
-		
-		try {
-			System.out.println(grafo.caminho(a, e));
-		} catch (SemCaminhoException ex) {
-			System.out.println("Sem caminho entre a e e");
-		}
+		System.out.println("Grafo original " + (grafo.ehCiclico() ? "tem ciclo." : "nao tem ciclo."));
+		System.out.println("Grafo inverso " + (inverso.ehCiclico() ? "tem ciclo." : "nao tem ciclo."));
 	}
 }

@@ -1,32 +1,36 @@
 package estrutura;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
-public class Vertice {
+public class Vertice implements Cloneable{
 	//marcacoes para algoritmos de percorrer o grafo
 	public static final int BRANCO = 0;
 	public static final int CINZA = 1;
 	public static final int PRETO = 2;
 	
-	private String descricao;
-	private Set<Vertice> adjacentes;
+	private Integer numero;
+	private Map<Vertice,Integer> adjacentes;
+	
 	private Integer cor;
 	private Vertice pai;
 	private Integer distanciaRaiz;
-	public Vertice(String descricao){
-		this.descricao = descricao;
-		adjacentes = new HashSet<Vertice>();
+	
+	public Vertice(Integer numero){
+		this.numero = numero;
+		adjacentes = new HashMap<Vertice,Integer>();
 		cor = BRANCO;
 		pai = null;
 		distanciaRaiz = null;
 	}
 	
-	public Set<Vertice> getAdjacentes(){
+	public Map<Vertice,Integer> getAdjacentes(){
 		return adjacentes;
 	}
-	public String getDescricao(){
-		return descricao;
+	public Integer getNumero(){
+		return this.numero;
 	}
 	public Integer getCor() {
 		return cor;
@@ -36,10 +40,10 @@ public class Vertice {
 			this.cor = cor;
 		}
 	}
-	public void setDescricao(String descricao) {
-		this.descricao = descricao;
+	public void setDescricao(Integer numero) {
+		this.numero = numero;
 	}
-	public void setAdjacentes(Set<Vertice> adjacentes) {
+	public void setAdjacentes(Map<Vertice,Integer> adjacentes) {
 		this.adjacentes = adjacentes;
 	}
 	
@@ -59,9 +63,9 @@ public class Vertice {
 		this.distanciaRaiz = distanciaRaiz;
 	}
 
-	public Boolean addAdjacente(Vertice vertice){
+	public Boolean addAdjacente(Vertice vertice, Integer peso){
 		int numAdjacentesAntigo = adjacentes.size();
-		adjacentes.add(vertice);
+		adjacentes.put(vertice, peso != null? peso: 1);
 		return adjacentes.size() > numAdjacentesAntigo;
 	}
 	
@@ -72,6 +76,6 @@ public class Vertice {
 	}
 	
 	public Boolean possuiAdjacente(Vertice vertice) {
-		return this.adjacentes.contains(vertice);
+		return this.adjacentes.containsKey(vertice);
 	}
 }

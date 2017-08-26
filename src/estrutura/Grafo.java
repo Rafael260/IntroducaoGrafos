@@ -3,17 +3,49 @@ package estrutura;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Stack;
 
 import exceptions.SemCaminhoException;
 
-public abstract class Grafo {
+public abstract class Grafo implements Cloneable{
 	protected List<Vertice> vertices;
-
-	public Grafo() {
+	protected int[][] matrizAdjacencia;
+	
+	public Grafo(Integer numeroVertices) {
 		this.vertices = new ArrayList<Vertice>();
+		int i = 0;
+		while (i < numeroVertices) {
+			adicionarVertice(new Vertice(i++));
+		}
+		matrizAdjacencia = new int[vertices.size()][vertices.size()];
+		inicializarMatrizAdjacencia();
+	}
+
+	public void inicializarMatrizAdjacencia() {
+		for (int i = 0; i < vertices.size(); i++) {
+			for (int j = 0; j < vertices.size(); j++) {
+				matrizAdjacencia[i][j] = 0;
+			}
+		}
+	}
+	
+	public int[][] getMatrizAdjacencia() {
+		return matrizAdjacencia;
+	}
+
+	public void setMatrizAdjacencia(int[][] novaMatrizAdjacencia) {
+		this.matrizAdjacencia = novaMatrizAdjacencia.clone();
+		for (Vertice vertice: vertices) {
+			vertice.getAdjacentes().clear();
+			for (int j = 0; j < vertices.size(); j++) {
+				if(matrizAdjacencia[vertice.getNumero()][j] != 0) {
+					adicionarAresta(vertice.getNumero(), j, matrizAdjacencia[vertice.getNumero()][j]);
+				}
+			}
+		}
 	}
 
 	public List<Vertice> getVertices() {
@@ -24,7 +56,7 @@ public abstract class Grafo {
 		this.vertices = vertices;
 	}
 
-	public void adicionarVertice(Vertice vertice) {
+	private void adicionarVertice(Vertice vertice) {
 		this.vertices.add(vertice);
 	}
 
@@ -38,11 +70,17 @@ public abstract class Grafo {
 				v.removerAdjacente(vertice);
 			}
 		}
+		
+		//Para matriz de adjacencias
+		for (int i = 0; i < vertices.size(); i++) {
+			matrizAdjacencia[i][vertice.getNumero()] = 0;
+			matrizAdjacencia[vertice.getNumero()][i] = 0;
+		}
 	}
 
-	abstract public void adicionarAresta(Vertice origem, Vertice destino);
+	abstract public void adicionarAresta(Integer origem, Integer destino, Integer peso);
 
-	abstract public void removerAresta(Vertice origem, Vertice destino);
+	abstract public void removerAresta(Integer origem, Integer destino);
 	
 	public void inicializarVertices() {
 		for (Vertice vertice: vertices) {
@@ -54,6 +92,7 @@ public abstract class Grafo {
 	
 	//BFS
 	public void buscarEmLargura() {
+		inicializarVertices();
 		//Lista de vertices visitados
 		Queue<Vertice> filaVertices = new LinkedList<Vertice>();
 		inicializarVertices();
@@ -64,14 +103,16 @@ public abstract class Grafo {
 		//Raiz ja foi visitada, logo fica com a cor cinza
 		raiz.setCor(Vertice.CINZA);
 		raiz.setDistanciaRaiz(0);
-		System.out.println("Raiz dessa busca é: "+ raiz.getDescricao());
+		System.out.println("Raiz dessa busca é: "+ raiz.getNumero());
 		filaVertices.add(raiz);
 		Vertice verticeAtual;
+		Map<Vertice,Integer> adjacentes;
 		while(!filaVertices.isEmpty()) {
 			verticeAtual = filaVertices.remove();
 			
-			System.out.println("Vertice visitado: "+ verticeAtual.getDescricao());
-			for (Vertice adj: verticeAtual.getAdjacentes()) {
+			System.out.println("Vertice visitado: "+ verticeAtual.getNumero());
+			adjacentes = verticeAtual.getAdjacentes();
+			for (Vertice adj: adjacentes.keySet()) {
 				if (adj.getCor() == Vertice.BRANCO) {
 					adj.setCor(Vertice.CINZA);
 					adj.setDistanciaRaiz(verticeAtual.getDistanciaRaiz()+1);
@@ -98,16 +139,17 @@ public abstract class Grafo {
 		}
 		//Raiz ja foi visitada, logo fica com a cor cinza
 		raizSelecionada.setCor(Vertice.CINZA);
-		raizSelecionada.setDistanciaRaiz(0);
-		System.out.println("Raiz dessa busca é: "+ raizSelecionada.getDescricao());
+//		raizSelecionada.setDistanciaRaiz(0);
+		System.out.println("Raiz dessa busca é: "+ raizSelecionada.getNumero());
 		buscarEm(raizSelecionada);
 	}
 	
 	//DFS_visit
 	public void buscarEm(Vertice vertice) {
-		System.out.println("Vertice visitado (DFS): "+ vertice.getDescricao());
+		System.out.println("Vertice visitado (DFS): "+ vertice.getNumero());
 		vertice.setCor(Vertice.CINZA);
-		for (Vertice adj: vertice.getAdjacentes()) {
+		Map<Vertice,Integer> adjacentes = vertice.getAdjacentes();
+		for (Vertice adj: adjacentes.keySet()) {
 			if (adj.getCor() == Vertice.BRANCO) {
 				adj.setPai(vertice);
 				buscarEm(adj);
@@ -116,15 +158,8 @@ public abstract class Grafo {
 		vertice.setCor(Vertice.PRETO);
 	}
 	
-	//Para grafos dirigidos, eh verdadeiro se for FORTEMENTE conexo
 	public Boolean ehConexo() {
-		buscarEmProfundidade(null);
-		for (Vertice vertice: vertices) {
-			if (vertice.getCor() == Vertice.BRANCO) {
-				return false;
-			}
-		}
-		return true;
+		return getNumeroComponentes() == 1;
 	}
 	
 	public Boolean ehAtingivel(Vertice u, Vertice v) {
@@ -134,12 +169,13 @@ public abstract class Grafo {
 	}
 	
 	public Boolean ehAtingivelVisit(Vertice u, Vertice v) {
-		System.out.println("Vertice visitado (DFS): "+ u.getDescricao());
+		System.out.println("Vertice visitado (DFS): "+ u.getNumero());
 		if (u == v) {
 			return true;
 		}
 		u.setCor(Vertice.CINZA);
-		for (Vertice adj: u.getAdjacentes()) {
+		Map<Vertice,Integer> adjacentes = u.getAdjacentes();
+		for (Vertice adj: adjacentes.keySet()) {
 			if (adj.getCor() == Vertice.BRANCO) {
 				adj.setPai(u);
 				if(ehAtingivelVisit(adj,v)) {
@@ -158,22 +194,23 @@ public abstract class Grafo {
 		if(caminhoVisit(u,v,verticesCaminho)) {
 			verticesCaminho.push(u);
 			while(!verticesCaminho.isEmpty()) {
-				caminho += verticesCaminho.pop().getDescricao() + " ";
+				caminho += verticesCaminho.pop().getNumero() + " ";
 			}
 		}
 		if (caminho.isEmpty()) {
-			throw new SemCaminhoException("Não possui caminho de "+ u.getDescricao() + " ate " + v.getDescricao());
+			throw new SemCaminhoException("Não possui caminho de "+ u.getNumero() + " ate " + v.getNumero());
 		}
 		return caminho;
 	}
 	
 	public Boolean caminhoVisit(Vertice u, Vertice v, Stack<Vertice> verticesCaminho) {
-		System.out.println("Vertice visitado (DFS): "+ u.getDescricao());
+		System.out.println("Vertice visitado (DFS): "+ u.getNumero());
 		if (u == v) {
 			return true;
 		}
 		u.setCor(Vertice.CINZA);
-		for (Vertice adj: u.getAdjacentes()) {
+		Map<Vertice,Integer> adjacentes = u.getAdjacentes();
+		for (Vertice adj: adjacentes.keySet()) {
 			if (adj.getCor() == Vertice.BRANCO) {
 				adj.setPai(u);
 				if(caminhoVisit(adj,v,verticesCaminho)) {
@@ -197,12 +234,14 @@ public abstract class Grafo {
 		return false;
 	}
 	
+	abstract public Boolean possuiCiclo(Vertice vertice, Vertice adjacente);
+	
 	public Boolean ehCiclicoVisit(Vertice vertice) {
-		System.out.println("Vertice visitado (DFS): "+ vertice.getDescricao());
+		System.out.println("Vertice visitado (DFS): "+ vertice.getNumero());
 		vertice.setCor(Vertice.CINZA);
-
-		for (Vertice adj: vertice.getAdjacentes()) {
-			if (adj.getCor() == Vertice.CINZA && adj != vertice.getPai()) {
+		Map<Vertice, Integer> adjacentes = vertice.getAdjacentes();
+		for (Vertice adj: adjacentes.keySet()) {
+			if (possuiCiclo(vertice,adj)) {
 				return true;
 			}
 			if (adj.getCor() == Vertice.BRANCO) {
@@ -216,15 +255,42 @@ public abstract class Grafo {
 		return false;
 	}
 	
+	abstract public int getNumeroComponentes();
+	
+	abstract public Grafo getMST();
+	
 	public String  toString() {
 		String retorno = "";
+		Map<Vertice,Integer> adjacentes;
 		for (Vertice v: this.vertices) {
-			retorno += "Vertice " + v.getDescricao() + " com adjacentes: ";
-			for (Vertice adj: v.getAdjacentes()) {
-				retorno += adj.getDescricao() + " ";
+			retorno += "Vertice " + v.getNumero() + " com adjacentes: ";
+			adjacentes = v.getAdjacentes();
+			for (Vertice adj: adjacentes.keySet()) {
+				retorno += adj.getNumero() + " ";
 			}
 			retorno += "\n";
 		}
 		return retorno;
+	}
+	
+	public abstract Grafo clone();
+	
+	public Grafo getGrafoInverso() {
+		inicializarVertices();
+		//Crio uma cópia do grafo atual
+		Grafo grafoInverso = clone();
+		//Pego a matriz de adjacencia do grafo
+		int[][] matrizAtual = grafoInverso.getMatrizAdjacencia();
+		//Crio a matriz do grafo inverso
+		int[][] novaMatriz = new int[vertices.size()][vertices.size()];
+		for (int i = 0; i < vertices.size(); i++) {
+			for (int j = 0; j < vertices.size(); j++) {
+				//E coloco os valores do grafo inverso
+				novaMatriz[i][j] = matrizAtual[j][i];
+			}
+		}
+		//Por fim, seto a matriz de adjacencia no objeto grafo, que aplicará as alterações na lista de adjacencia
+		grafoInverso.setMatrizAdjacencia(novaMatriz);
+		return grafoInverso;
 	}
 }
