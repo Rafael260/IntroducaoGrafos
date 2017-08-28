@@ -4,6 +4,10 @@ public class GrafoNaoDirigido extends Grafo{
 
 	public GrafoNaoDirigido(Integer numeroVertices) {
 		super(numeroVertices);
+		int i = 0;
+		while (i < numeroVertices) {
+			adicionarVertice(new Vertice(i++));
+		}
 	}
 	
 	@Override
@@ -11,8 +15,8 @@ public class GrafoNaoDirigido extends Grafo{
 		int pesoAresta = peso != null ? peso : 1;
 		
 		//Lista de adjacencia
-		Vertice verticeOrigem = vertices.get(origem);
-		Vertice verticeDestino = vertices.get(destino);
+		VerticeAbstrato verticeOrigem = vertices.get(origem);
+		VerticeAbstrato verticeDestino = vertices.get(destino);
 		verticeOrigem.addAdjacente(verticeDestino,pesoAresta);
 		verticeDestino.addAdjacente(verticeOrigem,pesoAresta);
 		
@@ -24,8 +28,8 @@ public class GrafoNaoDirigido extends Grafo{
 	@Override
 	public void removerAresta(Integer origem, Integer destino) {
 		//Lista de adjacencia
-		Vertice verticeOrigem = vertices.get(origem);
-		Vertice verticeDestino = vertices.get(destino);
+		VerticeAbstrato verticeOrigem = vertices.get(origem);
+		VerticeAbstrato verticeDestino = vertices.get(destino);
 		verticeOrigem.removerAdjacente(verticeDestino);
 		verticeDestino.removerAdjacente(verticeOrigem);
 		
@@ -40,8 +44,8 @@ public class GrafoNaoDirigido extends Grafo{
 		return null;
 	}
 	@Override
-	public Boolean possuiCiclo(Vertice vertice, Vertice adjacente) {
-		return adjacente.getCor() == Vertice.CINZA && adjacente != vertice.getPai();
+	public Boolean possuiCiclo(VerticeAbstrato vertice, VerticeAbstrato adjacente) {
+		return adjacente.getCor() == VerticeAbstrato.CINZA && adjacente != vertice.getPai();
 	}
 
 	@Override
@@ -56,8 +60,8 @@ public class GrafoNaoDirigido extends Grafo{
 	public int getNumeroComponentes() {
 		inicializarVertices();
 		int i = 0;
-		for (Vertice vertice: vertices) {
-			if (vertice.getCor() == Vertice.BRANCO) {
+		for (VerticeAbstrato vertice: vertices) {
+			if (vertice.getCor() == VerticeAbstrato.BRANCO) {
 				buscarEmProfundidade(vertice);
 				i++;
 			}

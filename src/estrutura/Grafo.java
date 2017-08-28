@@ -11,16 +11,12 @@ import java.util.Stack;
 import exceptions.SemCaminhoException;
 
 public abstract class Grafo implements Cloneable{
-	protected List<Vertice> vertices;
+	protected List<VerticeAbstrato> vertices;
 	protected int[][] matrizAdjacencia;
 	
 	public Grafo(Integer numeroVertices) {
-		this.vertices = new ArrayList<Vertice>();
-		int i = 0;
-		while (i < numeroVertices) {
-			adicionarVertice(new Vertice(i++));
-		}
-		matrizAdjacencia = new int[vertices.size()][vertices.size()];
+		this.vertices = new ArrayList<VerticeAbstrato>();
+		matrizAdjacencia = new int[numeroVertices][numeroVertices];
 		inicializarMatrizAdjacencia();
 	}
 
@@ -38,7 +34,7 @@ public abstract class Grafo implements Cloneable{
 
 	public void setMatrizAdjacencia(int[][] novaMatrizAdjacencia) {
 		this.matrizAdjacencia = novaMatrizAdjacencia.clone();
-		for (Vertice vertice: vertices) {
+		for (VerticeAbstrato vertice: vertices) {
 			vertice.getAdjacentes().clear();
 			for (int j = 0; j < vertices.size(); j++) {
 				if(matrizAdjacencia[vertice.getNumero()][j] != 0) {
@@ -48,23 +44,23 @@ public abstract class Grafo implements Cloneable{
 		}
 	}
 
-	public List<Vertice> getVertices() {
+	public List<VerticeAbstrato> getVertices() {
 		return vertices;
 	}
 
-	public void setVertices(List<Vertice> vertices) {
+	public void setVertices(List<VerticeAbstrato> vertices) {
 		this.vertices = vertices;
 	}
 
-	private void adicionarVertice(Vertice vertice) {
+	protected void adicionarVertice(VerticeAbstrato vertice) {
 		this.vertices.add(vertice);
 	}
 
-	public void removerVertice(Vertice vertice) {
+	public void removerVertice(VerticeAbstrato vertice) {
 		//Remove o vertice do grafo
 		this.vertices.remove(vertice);
 		//E agora devemos olhar todos os demais
-		for (Vertice v: vertices) {
+		for (VerticeAbstrato v: vertices) {
 			//Se caso o vertice estiver ligado com o removido, devemos tirar a aresta
 			if (v.possuiAdjacente(vertice)) {
 				v.removerAdjacente(vertice);
@@ -83,9 +79,9 @@ public abstract class Grafo implements Cloneable{
 	abstract public void removerAresta(Integer origem, Integer destino);
 	
 	public void inicializarVertices() {
-		for (Vertice vertice: vertices) {
+		for (VerticeAbstrato vertice: vertices) {
 			vertice.setPai(null);
-			vertice.setCor(Vertice.BRANCO);
+			vertice.setCor(VerticeAbstrato.BRANCO);
 			vertice.setDistanciaRaiz(null);
 		}
 	}
@@ -94,42 +90,42 @@ public abstract class Grafo implements Cloneable{
 	public void buscarEmLargura() {
 		inicializarVertices();
 		//Lista de vertices visitados
-		Queue<Vertice> filaVertices = new LinkedList<Vertice>();
+		Queue<VerticeAbstrato> filaVertices = new LinkedList<VerticeAbstrato>();
 		inicializarVertices();
 		//Precisamos começar de um vertice, que tal escolher um aleatorio?
 		Random random = new Random();
 		int indiceRaiz = random.nextInt(vertices.size());
-		Vertice raiz = vertices.get(indiceRaiz);
+		VerticeAbstrato raiz = vertices.get(indiceRaiz);
 		//Raiz ja foi visitada, logo fica com a cor cinza
-		raiz.setCor(Vertice.CINZA);
+		raiz.setCor(VerticeAbstrato.CINZA);
 		raiz.setDistanciaRaiz(0);
 		System.out.println("Raiz dessa busca é: "+ raiz.getNumero());
 		filaVertices.add(raiz);
-		Vertice verticeAtual;
-		Map<Vertice,Integer> adjacentes;
+		VerticeAbstrato verticeAtual;
+		Map<VerticeAbstrato,Integer> adjacentes;
 		while(!filaVertices.isEmpty()) {
 			verticeAtual = filaVertices.remove();
 			
 			System.out.println("Vertice visitado: "+ verticeAtual.getNumero());
 			adjacentes = verticeAtual.getAdjacentes();
-			for (Vertice adj: adjacentes.keySet()) {
-				if (adj.getCor() == Vertice.BRANCO) {
-					adj.setCor(Vertice.CINZA);
+			for (VerticeAbstrato adj: adjacentes.keySet()) {
+				if (adj.getCor() == VerticeAbstrato.BRANCO) {
+					adj.setCor(VerticeAbstrato.CINZA);
 					adj.setDistanciaRaiz(verticeAtual.getDistanciaRaiz()+1);
 					adj.setPai(verticeAtual);
 					filaVertices.add(adj);
 				}
 			}
-			verticeAtual.setCor(Vertice.PRETO);
+			verticeAtual.setCor(VerticeAbstrato.PRETO);
 		}
 	}
 	
 	//DFS
-	public void buscarEmProfundidade(Vertice raiz) {
+	public void buscarEmProfundidade(VerticeAbstrato raiz) {
 		inicializarVertices();
 		//Precisamos começar de um vertice, que tal escolher um aleatorio?
 		Random random = new Random();
-		Vertice raizSelecionada;
+		VerticeAbstrato raizSelecionada;
 		if (raiz == null) {
 			int indiceRaiz = random.nextInt(vertices.size());
 			raizSelecionada = vertices.get(indiceRaiz);
@@ -138,58 +134,58 @@ public abstract class Grafo implements Cloneable{
 			raizSelecionada = raiz;
 		}
 		//Raiz ja foi visitada, logo fica com a cor cinza
-		raizSelecionada.setCor(Vertice.CINZA);
+		raizSelecionada.setCor(VerticeAbstrato.CINZA);
 //		raizSelecionada.setDistanciaRaiz(0);
 		System.out.println("Raiz dessa busca é: "+ raizSelecionada.getNumero());
 		buscarEm(raizSelecionada);
 	}
 	
 	//DFS_visit
-	public void buscarEm(Vertice vertice) {
+	public void buscarEm(VerticeAbstrato vertice) {
 		System.out.println("Vertice visitado (DFS): "+ vertice.getNumero());
-		vertice.setCor(Vertice.CINZA);
-		Map<Vertice,Integer> adjacentes = vertice.getAdjacentes();
-		for (Vertice adj: adjacentes.keySet()) {
-			if (adj.getCor() == Vertice.BRANCO) {
+		vertice.setCor(VerticeAbstrato.CINZA);
+		Map<VerticeAbstrato,Integer> adjacentes = vertice.getAdjacentes();
+		for (VerticeAbstrato adj: adjacentes.keySet()) {
+			if (adj.getCor() == VerticeAbstrato.BRANCO) {
 				adj.setPai(vertice);
 				buscarEm(adj);
 			}
 		}
-		vertice.setCor(Vertice.PRETO);
+		vertice.setCor(VerticeAbstrato.PRETO);
 	}
 	
 	public Boolean ehConexo() {
 		return getNumeroComponentes() == 1;
 	}
 	
-	public Boolean ehAtingivel(Vertice u, Vertice v) {
+	public Boolean ehAtingivel(VerticeAbstrato u, VerticeAbstrato v) {
 		//Começar o DFS pelo u
 		inicializarVertices();
 		return ehAtingivelVisit(u,v);
 	}
 	
-	public Boolean ehAtingivelVisit(Vertice u, Vertice v) {
+	public Boolean ehAtingivelVisit(VerticeAbstrato u, VerticeAbstrato v) {
 		System.out.println("Vertice visitado (DFS): "+ u.getNumero());
 		if (u == v) {
 			return true;
 		}
-		u.setCor(Vertice.CINZA);
-		Map<Vertice,Integer> adjacentes = u.getAdjacentes();
-		for (Vertice adj: adjacentes.keySet()) {
-			if (adj.getCor() == Vertice.BRANCO) {
+		u.setCor(VerticeAbstrato.CINZA);
+		Map<VerticeAbstrato,Integer> adjacentes = u.getAdjacentes();
+		for (VerticeAbstrato adj: adjacentes.keySet()) {
+			if (adj.getCor() == VerticeAbstrato.BRANCO) {
 				adj.setPai(u);
 				if(ehAtingivelVisit(adj,v)) {
 					return true;
 				}
 			}
 		}
-		v.setCor(Vertice.PRETO);
+		v.setCor(VerticeAbstrato.PRETO);
 		return false;
 	}
 	
-	public String caminho(Vertice u, Vertice v) throws SemCaminhoException {
+	public String caminho(VerticeAbstrato u, VerticeAbstrato v) throws SemCaminhoException {
 		inicializarVertices();
-		Stack<Vertice> verticesCaminho = new Stack<Vertice>();
+		Stack<VerticeAbstrato> verticesCaminho = new Stack<VerticeAbstrato>();
 		String caminho = "";
 		if(caminhoVisit(u,v,verticesCaminho)) {
 			verticesCaminho.push(u);
@@ -203,15 +199,15 @@ public abstract class Grafo implements Cloneable{
 		return caminho;
 	}
 	
-	public Boolean caminhoVisit(Vertice u, Vertice v, Stack<Vertice> verticesCaminho) {
+	public Boolean caminhoVisit(VerticeAbstrato u, VerticeAbstrato v, Stack<VerticeAbstrato> verticesCaminho) {
 		System.out.println("Vertice visitado (DFS): "+ u.getNumero());
 		if (u == v) {
 			return true;
 		}
-		u.setCor(Vertice.CINZA);
-		Map<Vertice,Integer> adjacentes = u.getAdjacentes();
-		for (Vertice adj: adjacentes.keySet()) {
-			if (adj.getCor() == Vertice.BRANCO) {
+		u.setCor(VerticeAbstrato.CINZA);
+		Map<VerticeAbstrato,Integer> adjacentes = u.getAdjacentes();
+		for (VerticeAbstrato adj: adjacentes.keySet()) {
+			if (adj.getCor() == VerticeAbstrato.BRANCO) {
 				adj.setPai(u);
 				if(caminhoVisit(adj,v,verticesCaminho)) {
 					verticesCaminho.push(adj);
@@ -219,14 +215,14 @@ public abstract class Grafo implements Cloneable{
 				}
 			}
 		}
-		v.setCor(Vertice.PRETO);
+		v.setCor(VerticeAbstrato.PRETO);
 		return false;
 	}
 	
 	public Boolean ehCiclico() {
 		inicializarVertices();
-		for (Vertice v: this.vertices)
-			if(v.getCor() == Vertice.BRANCO) {
+		for (VerticeAbstrato v: this.vertices)
+			if(v.getCor() == VerticeAbstrato.BRANCO) {
 				if (ehCiclicoVisit(v)) {
 					return true;
 				}
@@ -234,24 +230,24 @@ public abstract class Grafo implements Cloneable{
 		return false;
 	}
 	
-	abstract public Boolean possuiCiclo(Vertice vertice, Vertice adjacente);
+	abstract public Boolean possuiCiclo(VerticeAbstrato vertice, VerticeAbstrato adjacente);
 	
-	public Boolean ehCiclicoVisit(Vertice vertice) {
+	public Boolean ehCiclicoVisit(VerticeAbstrato vertice) {
 		System.out.println("Vertice visitado (DFS): "+ vertice.getNumero());
-		vertice.setCor(Vertice.CINZA);
-		Map<Vertice, Integer> adjacentes = vertice.getAdjacentes();
-		for (Vertice adj: adjacentes.keySet()) {
+		vertice.setCor(VerticeAbstrato.CINZA);
+		Map<VerticeAbstrato, Integer> adjacentes = vertice.getAdjacentes();
+		for (VerticeAbstrato adj: adjacentes.keySet()) {
 			if (possuiCiclo(vertice,adj)) {
 				return true;
 			}
-			if (adj.getCor() == Vertice.BRANCO) {
+			if (adj.getCor() == VerticeAbstrato.BRANCO) {
 				adj.setPai(vertice);
 				if (ehCiclicoVisit(adj)) {
 					return true;
 				}
 			}
 		}
-		vertice.setCor(Vertice.PRETO);
+		vertice.setCor(VerticeAbstrato.PRETO);
 		return false;
 	}
 	
@@ -261,11 +257,11 @@ public abstract class Grafo implements Cloneable{
 	
 	public String  toString() {
 		String retorno = "";
-		Map<Vertice,Integer> adjacentes;
-		for (Vertice v: this.vertices) {
+		Map<VerticeAbstrato,Integer> adjacentes;
+		for (VerticeAbstrato v: this.vertices) {
 			retorno += "Vertice " + v.getNumero() + " com adjacentes: ";
 			adjacentes = v.getAdjacentes();
-			for (Vertice adj: adjacentes.keySet()) {
+			for (VerticeAbstrato adj: adjacentes.keySet()) {
 				retorno += adj.getNumero() + " ";
 			}
 			retorno += "\n";
