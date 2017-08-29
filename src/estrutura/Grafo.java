@@ -7,10 +7,14 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Stack;
+import java.util.Collection;
 
 import exceptions.SemCaminhoException;
 
 public abstract class Grafo implements Cloneable{
+	
+	public static int SEARCH_TIMER = 0;
+	
 	protected List<VerticeAbstrato> vertices;
 	protected int[][] matrizAdjacencia;
 	
@@ -87,15 +91,20 @@ public abstract class Grafo implements Cloneable{
 	}
 	
 	//BFS
-	public void buscarEmLargura() {
+	public void buscarEmLargura(VerticeAbstrato vertice) {
 		inicializarVertices();
 		//Lista de vertices visitados
 		Queue<VerticeAbstrato> filaVertices = new LinkedList<VerticeAbstrato>();
 		inicializarVertices();
-		//Precisamos começar de um vertice, que tal escolher um aleatorio?
-		Random random = new Random();
-		int indiceRaiz = random.nextInt(vertices.size());
-		VerticeAbstrato raiz = vertices.get(indiceRaiz);
+		VerticeAbstrato raiz;
+		if (vertice == null) {
+			Random random = new Random();
+			int indiceRaiz = random.nextInt(vertices.size());
+			raiz = vertices.get(indiceRaiz);
+		}
+		else {
+			raiz = vertice;
+		}
 		//Raiz ja foi visitada, logo fica com a cor cinza
 		raiz.setCor(VerticeAbstrato.CINZA);
 		raiz.setDistanciaRaiz(0);
@@ -123,6 +132,7 @@ public abstract class Grafo implements Cloneable{
 	//DFS
 	public void buscarEmProfundidade(VerticeAbstrato raiz) {
 		inicializarVertices();
+		SEARCH_TIMER = 0;
 		//Precisamos começar de um vertice, que tal escolher um aleatorio?
 		Random random = new Random();
 		VerticeAbstrato raizSelecionada;
@@ -151,11 +161,17 @@ public abstract class Grafo implements Cloneable{
 				buscarEm(adj);
 			}
 		}
+		vertice.setTempoPosWork(SEARCH_TIMER++);
 		vertice.setCor(VerticeAbstrato.PRETO);
 	}
 	
-	public Boolean ehConexo() {
-		return getNumeroComponentes() == 1;
+	abstract public Boolean ehConexo();
+	
+	public Boolean ehAtingivelByProlo(VerticeAbstrato u, VerticeAbstrato v) {
+		inicializarVertices();
+		buscarEmLargura(u);
+		return v.getCor() != VerticeAbstrato.BRANCO;
+		
 	}
 	
 	public Boolean ehAtingivel(VerticeAbstrato u, VerticeAbstrato v) {
@@ -251,7 +267,27 @@ public abstract class Grafo implements Cloneable{
 		return false;
 	}
 	
-	abstract public int getNumeroComponentes();
+	abstract public Collection<Collection<VerticeAbstrato>> getComponentes();
+	
+	protected Collection<VerticeAbstrato> getComponente(VerticeAbstrato vertice){
+		Collection<VerticeAbstrato> componente = new ArrayList<VerticeAbstrato>();
+		coletarVerticesComponente(vertice, componente);
+		return componente;
+	}
+	
+	protected void coletarVerticesComponente(VerticeAbstrato vertice, Collection<VerticeAbstrato> componente) {
+		System.out.println("Vertice visitado (DFS): "+ vertice.getNumero());
+		vertice.setCor(VerticeAbstrato.CINZA);
+		componente.add(vertice);
+		Map<VerticeAbstrato,Integer> adjacentes = vertice.getAdjacentes();
+		for (VerticeAbstrato adj: adjacentes.keySet()) {
+			if (adj.getCor() == VerticeAbstrato.BRANCO) {
+				adj.setPai(vertice);
+				coletarVerticesComponente(adj,componente);
+			}
+		}
+		vertice.setCor(VerticeAbstrato.PRETO);
+	}
 	
 	abstract public Grafo getMST();
 	
@@ -288,5 +324,17 @@ public abstract class Grafo implements Cloneable{
 		//Por fim, seto a matriz de adjacencia no objeto grafo, que aplicará as alterações na lista de adjacencia
 		grafoInverso.setMatrizAdjacencia(novaMatriz);
 		return grafoInverso;
+	}
+	
+	public void imprimirComponentes() {
+		Collection<Collection<VerticeAbstrato>> componentes = getComponentes();
+		for (Collection<VerticeAbstrato> componente: componentes) {
+			System.out.println("Componente:");
+			for(VerticeAbstrato vertice: componente) {
+				System.out.print(vertice + " ");
+			}
+			System.out.println();
+			System.out.println();
+		}
 	}
 }

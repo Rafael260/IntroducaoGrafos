@@ -2,6 +2,7 @@ package estrutura;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -57,9 +58,25 @@ public class GrafoDirigido extends Grafo {
 	}
 
 	@Override
-	public int getNumeroComponentes() {
+	public Collection<Collection<VerticeAbstrato>> getComponentes() {
+		inicializarVertices();
+		Collection<Collection<VerticeAbstrato>> componentes = new ArrayList<Collection<VerticeAbstrato>>();
+		for (VerticeAbstrato vertice: vertices) {
+			if (vertice.getCor() == VerticeAbstrato.BRANCO) {
+				buscarEmProfundidade(vertice);
+			}
+		}
+		//Pega o grafo transposto
+		Grafo transposto = this.getGrafoInverso();
+		//Coloca em ordem decrescente de peso
+		Collections.sort(transposto.getVertices());
 		
-		return 0;
+		for (VerticeAbstrato vertice: vertices) {
+			if (vertice.getCor() == VerticeAbstrato.BRANCO) {
+				componentes.add(getComponente(vertice));
+			}
+		}
+		return componentes;
 	}
 	
 	private static List<Nodo> convertToNodoList(Collection<VerticeAbstrato> list){
@@ -105,6 +122,11 @@ public class GrafoDirigido extends Grafo {
 			}
 		}
 		return filaSaida;
+	}
+
+	@Override
+	public Boolean ehConexo() {
+		return getComponentes().size() == 1;
 	}
 
 }

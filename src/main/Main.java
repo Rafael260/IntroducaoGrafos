@@ -11,15 +11,24 @@ import exceptions.SemCaminhoException;
 public class Main {
 
 	public static void main(String[] args) {
-		GrafoDirigido grafo = new GrafoDirigido(5);
+		Grafo grafo = new GrafoNaoDirigido(8);
 		
+		//https://upload.wikimedia.org/wikipedia/commons/5/5c/Scc.png
 		grafo.adicionarAresta(0, 1,null);
-		grafo.adicionarAresta(0, 2,null);
-		grafo.adicionarAresta(3, 4, null);
-		grafo.adicionarAresta(4, 2, null);
-		Collection<VerticeAbstrato> ordenacao = grafo.getOrdenacaoTopologica();
-		for (VerticeAbstrato v: ordenacao) {
-			System.out.print(v + " ");
-		}
+		grafo.adicionarAresta(1, 2,null);
+		grafo.adicionarAresta(2, 3, null);
+		grafo.adicionarAresta(3, 2, null);
+		grafo.adicionarAresta(3, 7, null);
+		grafo.adicionarAresta(7, 3, null);
+		grafo.adicionarAresta(1, 4, null);
+		grafo.adicionarAresta(1, 5, null);
+		grafo.adicionarAresta(4, 0, null);
+		grafo.adicionarAresta(4, 5, null);
+		grafo.adicionarAresta(5, 6, null);
+		grafo.adicionarAresta(6, 5, null);
+		grafo.adicionarAresta(7, 6, null);
+		grafo.adicionarAresta(2, 6, null);
+		
+		grafo.imprimirComponentes();
 	}
 }

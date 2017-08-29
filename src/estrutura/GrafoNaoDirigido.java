@@ -1,5 +1,9 @@
 package estrutura;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+
 public class GrafoNaoDirigido extends Grafo{
 
 	public GrafoNaoDirigido(Integer numeroVertices) {
@@ -57,16 +61,26 @@ public class GrafoNaoDirigido extends Grafo{
 	}
 
 	@Override
-	public int getNumeroComponentes() {
+	public Collection<Collection<VerticeAbstrato>> getComponentes() {
 		inicializarVertices();
-		int i = 0;
+		Collection<Collection<VerticeAbstrato>> componentes = new ArrayList<Collection<VerticeAbstrato>>();
 		for (VerticeAbstrato vertice: vertices) {
 			if (vertice.getCor() == VerticeAbstrato.BRANCO) {
-				buscarEmProfundidade(vertice);
-				i++;
+				componentes.add(getComponente(vertice));
 			}
 		}
-		return i;
+		return componentes;
+	}
+	
+	@Override
+	public Boolean ehConexo() {
+		buscarEmLargura(null);
+		for (VerticeAbstrato vertice: vertices) {
+			if (vertice.getCor() == VerticeAbstrato.BRANCO) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 }

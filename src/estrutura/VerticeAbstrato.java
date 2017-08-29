@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class VerticeAbstrato implements Cloneable{
+public abstract class VerticeAbstrato implements Cloneable, Comparable<VerticeAbstrato>{
 	//marcacoes para algoritmos de percorrer o grafo
 	public static final int BRANCO = 0;
 	public static final int CINZA = 1;
@@ -18,12 +18,15 @@ public abstract class VerticeAbstrato implements Cloneable{
 	private VerticeAbstrato pai;
 	private Integer distanciaRaiz;
 	
+	private Integer tempoPosWork;
+	
 	public VerticeAbstrato(Integer numero){
 		this.numero = numero;
 		adjacentes = new HashMap<VerticeAbstrato,Integer>();
 		cor = BRANCO;
 		pai = null;
 		distanciaRaiz = null;
+		tempoPosWork = 0;
 	}
 	
 	public Map<VerticeAbstrato,Integer> getAdjacentes(){
@@ -62,6 +65,14 @@ public abstract class VerticeAbstrato implements Cloneable{
 	public void setDistanciaRaiz(Integer distanciaRaiz) {
 		this.distanciaRaiz = distanciaRaiz;
 	}
+	
+	public Integer getTempoPosWork() {
+		return tempoPosWork;
+	}
+
+	public void setTempoPosWork(Integer tempoPosWork) {
+		this.tempoPosWork = tempoPosWork;
+	}
 
 	public Boolean addAdjacente(VerticeAbstrato vertice, Integer peso){
 		int numAdjacentesAntigo = adjacentes.size();
@@ -81,5 +92,10 @@ public abstract class VerticeAbstrato implements Cloneable{
 	
 	public String toString() {
 		return this.numero.toString();
+	}
+	
+	//Usando a ordem decrescente do tempo do pos work
+	public int compareTo(VerticeAbstrato other) {
+		return other.getTempoPosWork().compareTo(this.tempoPosWork);
 	}
 }

@@ -1,6 +1,6 @@
 package estrutura;
 
-public class Aresta {
+public class Aresta implements Comparable<Aresta>{
 	private VerticeAbstrato origem;
 	private VerticeAbstrato destino;
 	private Integer peso;
@@ -33,6 +33,11 @@ public class Aresta {
 
 	public void setPeso(Integer peso) {
 		this.peso = peso;
+	}
+
+	@Override
+	public int compareTo(Aresta outraAresta) {
+		return this.peso.compareTo(outraAresta.getPeso());
 	}
 	
 }
